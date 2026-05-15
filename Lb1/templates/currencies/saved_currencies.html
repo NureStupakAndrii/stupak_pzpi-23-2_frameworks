@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saved Currencies</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'currencies/currency_main.css' %}">
+</head>
+<body>
+    <header>
+        <h1>Currency Rates</h1>
+        <nav>
+            <ul>
+                <li><a href="/">Home</a></li>
+                <li><a href="{% url 'saved_currencies' %}">Saved</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <section class="saved-currencies-section">
+            <h2>Saved Currencies</h2>
+            {% if saved_currencies %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Currency</th>
+                        <th>Buy Rate</th>
+                        <th>Sell Rate</th>
+                        <th>Saved Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for currency in saved_currencies %}
+                    <tr>
+                        <td>{{ currency.name }}</td>
+                        <td>{{ currency.buy_rate }}</td>
+                        <td>{{ currency.sell_rate }}</td>
+                        <td>{{ currency.saved_date }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="empty-message">No saved currencies yet. Go to the home page and click "Save Today's Rates".</p>
+            {% endif %}
+        </section>
+    </main>
+</body>
+</html>

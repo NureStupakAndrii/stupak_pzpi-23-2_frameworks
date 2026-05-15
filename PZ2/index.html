@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PZ2</title>
+</head>
+<body>
+    <h1>PZ2</h1>
+    <button id="target-button">
+        Click me
+    </button>
+</body>
+</html>
+
+<script>
+    const button = document.getElementById("target-button")
+
+    button.addEventListener("click", async() => {
+        button.style["background-color"] = await loadColor()
+    })
+
+    function loadColor() {
+        return fetch("./color.json")
+            .then(response => response.text())
+            .then(text => JSON.parse(text))
+            .then(data => data.color)
+            .catch(error => console.log(error))
+    }
+</script>

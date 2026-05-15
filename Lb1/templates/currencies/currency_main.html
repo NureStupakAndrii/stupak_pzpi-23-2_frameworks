@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Currency Rates</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'currencies/currency_main.css' %}">
+</head>
+<body>
+    <header>
+        <h1>Currency Rates</h1>
+        <nav>
+            <ul>
+                <li><a href="/">Home</a></li>
+                <li><a href="/saved/">Saved</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <section class="form-section">
+            <h2>Add Currency</h2>
+            <form method="POST" class="currency-form">
+                {% csrf_token %}
+                <p>
+                    <label>Currency Name:</label>
+                    <input type="text" name="name" class="form-control" required>
+                </p>
+                <p>
+                    <label>Buy Rate:</label>
+                    <input type="number" step="0.01" name="buy_rate" class="form-control" required>
+                </p>
+                <p>
+                    <label>Sell Rate:</label>
+                    <input type="number" step="0.01" name="sell_rate" class="form-control" required>
+                </p>
+                <button type="submit" class="btn-submit">Add Rate</button>
+            </form>
+        </section>
+
+        <form method="POST" action="{% url 'save_today_rates' %}" style="margin-bottom: 16px;">
+            {% csrf_token %}
+            <button type="submit" class="btn-submit">Save Today's Rates</button>
+        </form>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Currency</th>
+                    <th>Buy Rate</th>
+                    <th>Sell Rate</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for currency in currencies %}
+                <tr>
+                    <td>{{ currency.name }}</td>
+                    <td>{{ currency.buy_rate }}</td>
+                    <td>{{ currency.sell_rate }}</td>
+                    <td>
+                        <form method="POST" action="/delete/{{ currency.id }}/" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-delete">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <section style="margin-top: 16px;">
+            <h2>Rates from API to UAH</h2>
+            {% if rates %}
+                <ul>
+                    {% for currency, rate in rates.items %}
+                    <li>{{ currency }}: {{ rate }}</li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No external rates found.</p>
+            {% endif %}
+        </section>
+    </main>
+</body>
+</html>
