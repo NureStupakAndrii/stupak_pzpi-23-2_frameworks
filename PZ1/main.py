@@ -9,9 +9,10 @@ print(get_min(1, 2, 3))
 # 4.	Напишіть функцію, яка приймає рядок та повертає його 
 # обернений варіант. Наприклад, "hello" повинно повернути "olleh".
 
-
 def reverse_string(str):
-    return str[::-1]
+    return "".join(reversed(str))
+
+    # return str[::-1]
 
 print(reverse_string("hello"))
 

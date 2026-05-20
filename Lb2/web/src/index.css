@@ -1,0 +1,87 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Arial Narrow", "Helvetica Neue", Helvetica, Arial, sans-serif;
+
+  --color-page: #e1522f;
+  --color-page-deep: #d94c2d;
+  --color-ink: #3f0058;
+  --color-accent: #4b0d66;
+  --color-paper: #fff8f1;
+  --color-paper-soft: #fff4eb;
+  --color-paper-strong: #fff7ef;
+  --color-paper-muted: #f2f2f2;
+
+  --shadow-pop: 0 14px 0 rgba(75, 13, 102, 0.18);
+  --shadow-pop-lg: 0 16px 0 rgba(75, 13, 102, 0.22);
+  --shadow-panel: 0 24px 0 rgba(75, 13, 102, 0.12);
+}
+
+:root {
+  font-family: var(--font-sans);
+  color: var(--color-ink);
+  background: var(--color-page);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.12), transparent 34%),
+    linear-gradient(
+      180deg,
+      var(--color-page-deep) 0%,
+      var(--color-page) 34%,
+      #e85a31 56%,
+      var(--color-page) 100%
+    );
+}
+
+.auth-dialog {
+  margin: auto;
+  max-height: calc(100dvh - 2rem);
+}
+
+.auth-dialog::backdrop {
+  background: rgba(75, 13, 102, 0.42);
+  backdrop-filter: blur(6px);
+}
+
+::selection {
+  background: rgba(75, 13, 102, 0.22);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+@utility page-panel {
+  @apply rounded-[2.25rem] border-4 border-accent bg-paper shadow-panel;
+}
+
+@utility inner-panel {
+  @apply rounded-[1.75rem] border-4 border-accent bg-white shadow-pop;
+}
+
+@utility button-primary {
+  @apply rounded-full border-2 border-accent bg-accent px-4 py-2 text-xs font-black uppercase tracking-[0.24em] text-paper transition hover:bg-[#5a1378];
+}
+
+@utility button-secondary {
+  @apply rounded-full border-2 border-accent bg-white px-4 py-2 text-xs font-black uppercase tracking-[0.24em] text-accent transition hover:bg-paper-soft;
+}
