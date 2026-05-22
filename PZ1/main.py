@@ -1,10 +1,16 @@
 # 4.	Напишіть функцію, яка приймає три параметри (a, b, c) 
 # і виводить на екран найменше з них.
 
-def get_min(a, b, c):
-    return min(a, b, c)
+def get_min(arr):
+    min_val = arr[0]
 
-print(get_min(1, 2, 3))
+    for x in arr:
+        if x < min_val:
+            min_val = x
+
+    return min_val
+
+print(get_min([3, 1, 2]))
 
 # 4.	Напишіть функцію, яка приймає рядок та повертає його 
 # обернений варіант. Наприклад, "hello" повинно повернути "olleh".

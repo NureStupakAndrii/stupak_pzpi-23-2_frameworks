@@ -6,6 +6,8 @@ const pgSession = require("connect-pg-simple");
 
 const { userRouter } = require("./routes/user.routes");
 const { videoRouter } = require("./routes/video.routes");
+const { subscriptionRouter } = require("./routes/subscription.routes");
+const { notificationRouter } = require("./routes/notification.routes");
 const { handleErrors } = require("./middlewares/error.middleware");
 const { initializeDatabase, pool } = require("./services/database.service");
 const { initializeStorage } = require("./services/storage.service");
@@ -45,6 +47,8 @@ app.use(
 
 app.use("/users", userRouter);
 app.use("/videos", videoRouter);
+app.use("/subscriptions", subscriptionRouter);
+app.use("/notifications", notificationRouter);
 app.use(handleErrors);
 
 async function bootstrap() {

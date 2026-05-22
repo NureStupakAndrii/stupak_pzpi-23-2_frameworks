@@ -10,8 +10,7 @@ declare module "axios" {
   }
 }
 
-export const apiBaseUrl: string =
-  import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3001";
+export const apiBaseUrl: string = "http://localhost:3001";
 
 export const apiClient = axios.create({
   baseURL: apiBaseUrl,

@@ -1,0 +1,40 @@
+# Gradle
+.gradle/
+build/
+**/build/
+
+# Kotlin
+.kotlin/
+
+# Android Studio / IntelliJ IDEA
+*.iml
+.idea/caches/
+.idea/libraries/
+.idea/modules.xml
+.idea/workspace.xml
+.idea/navEditor.xml
+.idea/assetWizardSettings.xml
+
+# Local machine configuration
+local.properties
+
+# Android build artifacts
+captures/
+.externalNativeBuild/
+.cxx/
+*.apk
+*.aab
+*.ap_
+*.dex
+*.class
+
+# Signing files
+*.jks
+*.keystore
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db

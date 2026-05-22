@@ -7,6 +7,7 @@ function mapVideoRow(row) {
   return {
     id: row.id,
     userId: row.user_id,
+    username: row.username,
     title: row.title,
     description: row.description,
     filename: row.filename,
@@ -15,6 +16,18 @@ function mapVideoRow(row) {
     size: row.size,
     uploadedAt: row.uploaded_at.toISOString(),
     thumbnail: row.thumbnail,
+  };
+}
+
+function mapNotificationRow(row) {
+  return {
+    id: row.id,
+    videoId: row.video_id,
+    title: row.title,
+    channelUserId: row.channel_user_id,
+    channelUsername: row.channel_username,
+    createdAt: row.created_at.toISOString(),
+    readAt: row.read_at === null ? null : row.read_at.toISOString(),
   };
 }
 
@@ -37,6 +50,15 @@ function mapCommentRow(row) {
   };
 }
 
+function mapSubscriptionRow(row) {
+  return {
+    id: row.id,
+    userId: row.target_user_id,
+    username: row.username,
+    createdAt: row.created_at.toISOString(),
+  };
+}
+
 function mapUserRow(row) {
   return {
     id: row.id,
@@ -54,18 +76,20 @@ async function initializeDatabase() {
 async function fetchVideos() {
   const result = await pool.query(`
     SELECT
-      id,
-      user_id,
-      title,
-      description,
-      filename,
-      original_name,
-      mime_type,
-      size,
-      uploaded_at,
-      thumbnail
+      videos.id,
+      videos.user_id,
+      users.username,
+      videos.title,
+      videos.description,
+      videos.filename,
+      videos.original_name,
+      videos.mime_type,
+      videos.size,
+      videos.uploaded_at,
+      videos.thumbnail
     FROM videos
-    ORDER BY uploaded_at DESC
+    LEFT JOIN users ON users.id = videos.user_id
+    ORDER BY videos.uploaded_at DESC
   `);
 
   return result.rows.map(mapVideoRow);
@@ -75,18 +99,20 @@ async function fetchVideoById(videoId) {
   const result = await pool.query(
     `
       SELECT
-        id,
-        user_id,
-        title,
-        description,
-        filename,
-        original_name,
-        mime_type,
-        size,
-        uploaded_at,
-        thumbnail
+        videos.id,
+        videos.user_id,
+        users.username,
+        videos.title,
+        videos.description,
+        videos.filename,
+        videos.original_name,
+        videos.mime_type,
+        videos.size,
+        videos.uploaded_at,
+        videos.thumbnail
       FROM videos
-      WHERE id = $1
+      LEFT JOIN users ON users.id = videos.user_id
+      WHERE videos.id = $1
     `,
     [videoId],
   );
@@ -104,6 +130,7 @@ async function fetchSharedVideos(userId) {
       SELECT
         videos.id,
         videos.user_id,
+        owner_users.username,
         videos.title,
         videos.description,
         videos.filename,
@@ -113,10 +140,11 @@ async function fetchSharedVideos(userId) {
         videos.uploaded_at,
         videos.thumbnail,
         video_shares.created_at AS shared_at,
-        users.username AS shared_by_username
+        sharer_users.username AS shared_by_username
       FROM video_shares
       JOIN videos ON videos.id = video_shares.video_id
-      JOIN users ON users.id = video_shares.from_user_id
+      LEFT JOIN users AS owner_users ON owner_users.id = videos.user_id
+      JOIN users AS sharer_users ON sharer_users.id = video_shares.from_user_id
       WHERE video_shares.to_user_id = $1
       ORDER BY video_shares.created_at DESC
     `,
@@ -218,6 +246,69 @@ async function fetchCommentsByVideoId(videoId) {
   return result.rows.map(mapCommentRow);
 }
 
+async function fetchSubscriptionsByUserId(userId) {
+  const result = await pool.query(
+    `
+      SELECT
+        subscriptions.id,
+        subscriptions.target_user_id,
+        users.username,
+        subscriptions.created_at
+      FROM subscriptions
+      JOIN users ON users.id = subscriptions.target_user_id
+      WHERE subscriptions.subscriber_id = $1
+      ORDER BY subscriptions.created_at DESC
+    `,
+    [userId],
+  );
+
+  return result.rows.map(mapSubscriptionRow);
+}
+
+async function insertSubscription(subscriberId, targetUserId) {
+  const result = await pool.query(
+    `
+      WITH subscription AS (
+        INSERT INTO subscriptions (
+          subscriber_id,
+          target_user_id
+        )
+        VALUES ($1, $2)
+        ON CONFLICT (subscriber_id, target_user_id)
+        DO UPDATE SET
+          created_at = subscriptions.created_at
+        RETURNING
+          id,
+          target_user_id,
+          created_at
+      )
+      SELECT
+        subscription.id,
+        subscription.target_user_id,
+        users.username,
+        subscription.created_at
+      FROM subscription
+      JOIN users ON users.id = subscription.target_user_id
+    `,
+    [subscriberId, targetUserId],
+  );
+
+  return mapSubscriptionRow(result.rows[0]);
+}
+
+async function deleteSubscription(subscriberId, targetUserId) {
+  const result = await pool.query(
+    `
+      DELETE FROM subscriptions
+      WHERE subscriber_id = $1
+        AND target_user_id = $2
+    `,
+    [subscriberId, targetUserId],
+  );
+
+  return result.rowCount > 0;
+}
+
 async function insertComment(comment) {
   const result = await pool.query(
     `
@@ -249,6 +340,84 @@ async function insertComment(comment) {
   );
 
   return mapCommentRow(result.rows[0]);
+}
+
+async function insertNewVideoNotifications(videoId, channelUserId) {
+  await pool.query(
+    `
+      INSERT INTO notifications (
+        user_id,
+        video_id,
+        channel_user_id
+      )
+      SELECT
+        subscriber_id,
+        $1,
+        $2
+      FROM subscriptions
+      WHERE target_user_id = $2
+      ON CONFLICT (user_id, video_id)
+      DO NOTHING
+    `,
+    [videoId, channelUserId],
+  );
+}
+
+async function fetchNotificationsByUserId(userId) {
+  const result = await pool.query(
+    `
+      SELECT
+        notifications.id,
+        notifications.video_id,
+        videos.title,
+        notifications.channel_user_id,
+        users.username AS channel_username,
+        notifications.created_at,
+        notifications.read_at
+      FROM notifications
+      JOIN videos ON videos.id = notifications.video_id
+      JOIN users ON users.id = notifications.channel_user_id
+      WHERE notifications.user_id = $1
+      ORDER BY notifications.created_at DESC
+    `,
+    [userId],
+  );
+
+  return result.rows.map(mapNotificationRow);
+}
+
+async function markNotificationAsRead(notificationId, userId) {
+  const result = await pool.query(
+    `
+      UPDATE notifications
+      SET read_at = COALESCE(read_at, NOW())
+      WHERE id = $1
+        AND user_id = $2
+      RETURNING
+        id,
+        video_id,
+        (
+          SELECT title
+          FROM videos
+          WHERE videos.id = notifications.video_id
+        ) AS title,
+        channel_user_id,
+        (
+          SELECT username
+          FROM users
+          WHERE users.id = notifications.channel_user_id
+        ) AS channel_username,
+        created_at,
+        read_at
+    `,
+    [notificationId, userId],
+  );
+
+  if (result.rowCount === 0) {
+    return null;
+  }
+
+  return mapNotificationRow(result.rows[0]);
 }
 
 async function insertUser(user) {
@@ -342,15 +511,21 @@ async function findUserById(userId) {
 module.exports = {
   pool,
   fetchCommentsByVideoId,
+  fetchNotificationsByUserId,
   fetchSharedVideos,
+  fetchSubscriptionsByUserId,
   fetchVideoById,
   fetchVideos,
+  deleteSubscription,
   findUserByEmail,
   findUserById,
   findUserByUsername,
   initializeDatabase,
   insertComment,
+  insertNewVideoNotifications,
+  insertSubscription,
   insertVideoShare,
   insertVideo,
   insertUser,
+  markNotificationAsRead,
 };

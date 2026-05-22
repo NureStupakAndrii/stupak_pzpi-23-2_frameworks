@@ -46,7 +46,6 @@ export function UploadPage(): ReactElement {
     <EditorialLayout
       activeSection="upload"
       title="Upload"
-      subtitle="A dedicated place to prepare the next upload"
     >
       <section className="mx-auto w-full max-w-[1024px]">
         <div className="page-panel">

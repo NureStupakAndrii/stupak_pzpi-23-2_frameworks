@@ -35,6 +35,11 @@ export function VideoCard({ video }: VideoCardProps): ReactElement {
             Shared by {video.sharedByUsername}
           </p>
         )}
+        {video.sharedByUsername === undefined && video.username != null && (
+          <p className="mt-2 text-[11px] font-black uppercase tracking-[0.22em] text-accent/60">
+            Channel {video.username}
+          </p>
+        )}
       </div>
     </Link>
   );

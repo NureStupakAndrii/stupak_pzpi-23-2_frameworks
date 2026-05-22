@@ -6,6 +6,15 @@ CREATE TABLE IF NOT EXISTS users (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS user_sessions (
+  sid VARCHAR NOT NULL PRIMARY KEY,
+  sess JSON NOT NULL,
+  expire TIMESTAMP(6) NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_sessions_expire
+  ON user_sessions (expire);
+
 CREATE TABLE IF NOT EXISTS videos (
   id TEXT PRIMARY KEY,
   user_id BIGINT REFERENCES users(id) ON DELETE SET NULL,
@@ -34,4 +43,23 @@ CREATE TABLE IF NOT EXISTS comments (
   video_id TEXT NOT NULL REFERENCES videos(id) ON DELETE CASCADE,
   content TEXT NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS subscriptions (
+  id BIGSERIAL PRIMARY KEY,
+  subscriber_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  target_user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (subscriber_id, target_user_id),
+  CHECK (subscriber_id <> target_user_id)
+);
+
+CREATE TABLE IF NOT EXISTS notifications (
+  id BIGSERIAL PRIMARY KEY,
+  user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  video_id TEXT NOT NULL REFERENCES videos(id) ON DELETE CASCADE,
+  channel_user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  read_at TIMESTAMPTZ,
+  UNIQUE (user_id, video_id)
 );

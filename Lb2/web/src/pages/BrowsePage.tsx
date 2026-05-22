@@ -7,7 +7,30 @@ import { VideoCard } from "../components/VideoCard";
 import { fetchVideos } from "../api/videos";
 import { VideoSearchBar } from "../components/VideoSearchBar";
 import type { VideoSummary } from "../types";
-import { filterVideos } from "./BrowsePageFilters";
+
+function filterVideos(
+  videos: ReadonlyArray<VideoSummary>,
+  searchText: string,
+): ReadonlyArray<VideoSummary> {
+  const normalizedSearchText = searchText.trim().toLowerCase();
+
+  if (normalizedSearchText.length === 0) {
+    return videos;
+  }
+
+  return videos.filter((video) => {
+    const searchableText = [
+      video.title,
+      video.filename,
+      video.originalName,
+      video.mimeType,
+    ]
+      .join(" ")
+      .toLowerCase();
+
+    return searchableText.includes(normalizedSearchText);
+  });
+}
 
 export function BrowsePage(): ReactElement {
   const [loading, setLoading] = useState(true);

@@ -5,6 +5,7 @@ import { fetchVideos, getVideoStreamUrl } from "../api/videos";
 import { EditorialLayout } from "../components/EditorialLayout";
 import { LinkButton } from "../components/LinkButton";
 import { StateCard } from "../components/StateCard";
+import { SubscribeButton } from "../components/SubscribeButton";
 import { VideoCommentsSection } from "../components/VideoCommentsSection";
 import { VideoLibraryAside } from "../components/VideoLibraryAside";
 import { VideoSharePanel } from "../components/VideoSharePanel";
@@ -104,6 +105,10 @@ export function VideoPage(): ReactElement {
                     <p className="mt-2 text-lg font-medium text-accent/75">
                       {video.description}
                     </p>
+                    <SubscribeButton
+                      channelUserId={video.userId}
+                      username={video.username}
+                    />
                     <div className="flex flex-col gap-8">
                       <VideoSharePanel videoId={video.id} />
                       <VideoCommentsSection videoId={video.id} />

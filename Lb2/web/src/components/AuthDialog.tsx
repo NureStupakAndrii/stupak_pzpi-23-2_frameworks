@@ -61,10 +61,7 @@ export function AuthDialog({
       setSubmitting(true);
       setErrorMessage("");
 
-      const user =
-        mode === "login"
-          ? await loginUser(email, password)
-          : await registerUser(email, username, password);
+      const user = mode === "login" ? await loginUser(email, password) : await registerUser(email, username, password);
 
       onAuthenticated(user);
     } catch (error: unknown) {
@@ -73,6 +70,7 @@ export function AuthDialog({
       );
     } finally {
       setSubmitting(false);
+      event.currentTarget.reset();
     }
   };
 
@@ -81,6 +79,7 @@ export function AuthDialog({
   const handleClose = (): void => {
     setErrorMessage("");
     setSubmitting(false);
+
     onClose();
   };
 

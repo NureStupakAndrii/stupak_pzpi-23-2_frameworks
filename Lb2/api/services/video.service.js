@@ -4,6 +4,7 @@ const {
   fetchVideoById,
   fetchVideos,
   findUserByUsername,
+  insertNewVideoNotifications,
   insertVideo,
   insertVideoShare,
 } = require("./database.service");
@@ -76,6 +77,7 @@ async function saveUploadedVideo(file, rawTitle, rawDescription, userId) {
   };
 
   await insertVideo(video);
+  await insertNewVideoNotifications(video.id, userId);
 
   return video;
 }
